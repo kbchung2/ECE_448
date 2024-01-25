@@ -16,7 +16,24 @@ the key of the dictionary itself must be word1*-*-*-*word2 at the end of the com
 import numpy as np
 from collections import Counter
 
-stopwords = set(["a","about","above","after","again","against","all","am","an","and","any","are","aren","'t","as","at","be","because","been","before","being","below","between","both","but","by","can","cannot","could","couldn","did","didn","do","does","doesn","doing","don","down","during","each","few","for","from","further","had","hadn","has","hasn","have","haven","having","he","he","'d","he","'ll","he","'s","her","here","here","hers","herself","him","himself","his","how","how","i","'m","'ve","if","in","into","is","isn","it","its","itself","let","'s","me","more","most","mustn","my","myself","no","nor","not","of","off","on","once","only","or","other","ought","our","ours","ourselves","out","over","own","same","shan","she","she","'d","she","ll","she","should","shouldn","so","some","such","than","that","that","the","their","theirs","them","themselves","then","there","there","these","they","they","they","they","'re","they","this","those","through","to","too","under","until","up","very","was","wasn","we","we","we","we","we","'ve","were","weren","what","what","when","when","where","where","which","while","who","who","whom","why","why","with","won","would","wouldn","you","your","yours","yourself","yourselves"])
+stopwords = set(["a","about","above","after","again","against",
+                 "all","am","an","and","any","are","aren","'t","as",
+                 "at","be","because","been","before","being","below","between",
+                 "both","but","by","can","cannot","could","couldn","did","didn",
+                 "do","does","doesn","doing","don","down","during","each","few",
+                 "for","from","further","had","hadn","has","hasn","have","haven"
+                 ,"having","he","he","'d","he","'ll","he","'s","her","here","here",
+                 "hers","herself","him","himself","his","how","how","i","'m","'ve",
+                 "if","in","into","is","isn","it","its","itself","let","'s","me",
+                 "more","most","mustn","my","myself","no","nor","not","of","off",
+                 "on","once","only","or","other","ought","our","ours","ourselves",
+                 "out","over","own","same","shan","she","she","'d","she","ll","she",
+                 "should","shouldn","so","some","such","than","that","that","the","their",
+                 "theirs","them","themselves","then","there","there","these","they","they",
+                 "they","they","'re","they","this","those","through","to","too","under",
+                 "until","up","very","was","wasn","we","we","we","we","we","'ve","were",
+                 "weren","what","what","when","when","where","where","which","while","who",
+                 "who","whom","why","why","with","won","would","wouldn","you","your","yours","yourself","yourselves"])
 
 def create_frequency_table(train):
     '''
@@ -61,7 +78,18 @@ def remove_stopwords(frequency):
     '''
     nonstop = {}
     for class_class in frequency.keys():
-        
+        cur_counter = frequency[class_class] # the Counter()
+        for bigram in list(cur_counter):
+            word_one,word_two = bigram.split("*-*-*-*")
+            
+            if word_one in stopwords and word_two in stopwords:
+                continue
+            if class_class not in nonstop:
+                nonstop[class_class] = Counter()
+            # print(bigram, cur_counter[bigram])
+
+            nonstop[class_class][word_one + "*-*-*-*" + word_two] = cur_counter[bigram]
+    return nonstop
 
 def laplace_smoothing(nonstop, smoothness):
     '''
@@ -119,4 +147,6 @@ def optimize_hyperparameters(texts, labels, nonstop, priors, smoothnesses):
     Output:
     accuracies (numpy array, shape = len(priors) x len(smoothnesses))
         - accuracies[m,n] = dev set accuracy achieved using the
-          m'th candidate prior an
+          m'th candidate prior and the n'th candidate smoothness
+    '''
+                          
