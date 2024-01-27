@@ -50,10 +50,9 @@ def create_frequency_table(train):
     dictionary = (dict(train))
     frequency = {}
     for class_class in train.keys():
-        if class_class not in frequency:
-            frequency[class_class] = Counter()
+        frequency[class_class] = Counter()
         texts = train[class_class] # this is the list of lists (just a collection of texts) (each list represents a text)
-        for text in (texts):
+        for text in texts:
             for bigram_token_idx in range(len(text) - 1):
                 first_word = text[bigram_token_idx]
                 second_word = text[bigram_token_idx + 1]
@@ -79,13 +78,13 @@ def remove_stopwords(frequency):
     nonstop = {}
     for class_class in frequency.keys():
         cur_counter = frequency[class_class] # the Counter()
+        nonstop[class_class] = Counter()
         for bigram in list(cur_counter):
             word_one,word_two = bigram.split("*-*-*-*")
             
             if word_one in stopwords and word_two in stopwords:
                 continue
-            if class_class not in nonstop:
-                nonstop[class_class] = Counter()
+            
             # print(bigram, cur_counter[bigram])
 
             nonstop[class_class][word_one + "*-*-*-*" + word_two] = cur_counter[bigram]
@@ -111,7 +110,23 @@ def laplace_smoothing(nonstop, smoothness):
     Be careful that your vocabulary only counts bigrams that occurred at least once
     in the training data for class y.
     '''
-
+    k = smoothness
+    c = Counter()
+    
+    likelihood = {}
+    
+    # print(len(list(nonstop.keys()) ) )
+    # print(nonstop)
+    # print(  )
+    
+    for class_class in nonstop: #class y
+        likelihood[class_class] = {}
+        num_unique_bigrams = len(list(nonstop[class_class].keys()   ))
+        num_tokens = sum(nonstop[class_class].values()) 
+        for bigram in list(nonstop[class_class].keys()):
+            likelihood[class_class][bigram] = (nonstop[class_class][bigram] + k ) / (num_tokens+ k * (num_unique_bigrams + 1))
+        likelihood[class_class]["OOV"] = k /  (num_tokens + k * (num_unique_bigrams + 1))
+    return likelihood
 def naive_bayes(texts, likelihood, prior):
     '''
     Parameters:
@@ -127,6 +142,32 @@ def naive_bayes(texts, likelihood, prior):
     hypotheses (list)
         - hypotheses[i] = class label for the i'th text
     '''
+    hypotheses = []
+    # print(len(texts))
+    # print(prior)
+    for text in texts:
+        prob_pos = np.log(prior)
+        prob_neg = np.log(1 - prior)
+        
+        for idx in range(len(text) - 1):
+            if text[idx] in stopwords and text[idx+1] in stopwords:
+                continue
+            bigram = text[idx] + "*-*-*-*" + text[idx + 1]
+            
+            if bigram not in likelihood["pos"]:
+                prob_pos += np.log(likelihood["pos"]["OOV"])
+            else:
+                prob_pos += np.log(likelihood["pos"][bigram])
+            if bigram not in likelihood["neg"]:
+                prob_neg += np.log(likelihood["neg"]["OOV"])
+            else:
+                prob_neg += np.log(likelihood["neg"][bigram])
+            
+        if prob_pos > prob_neg:
+            hypotheses.append("pos")
+        else:
+            hypotheses.append("neg")  
+    return hypotheses
 
 
 
@@ -149,4 +190,18 @@ def optimize_hyperparameters(texts, labels, nonstop, priors, smoothnesses):
         - accuracies[m,n] = dev set accuracy achieved using the
           m'th candidate prior and the n'th candidate smoothness
     '''
+    accuracies = np.zeros((len(priors),len(smoothnesses)))
+    for pr_idx, prior in enumerate(priors):
+        sum_total = len(labels)
+       
+        for sm_idx, k in enumerate(smoothnesses):
+            sum_correct = 0
+            likelihood = laplace_smoothing(nonstop,k)
+            classified = naive_bayes(texts,likelihood,prior)
+            
+            for lidx, label in enumerate(labels):
+                if label == classified[lidx]:
+                    sum_correct += 1
+            accuracies[pr_idx,sm_idx] = sum_correct / sum_total
+    return accuracies
                           
