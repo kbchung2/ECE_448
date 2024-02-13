@@ -19,33 +19,31 @@ def trainPerceptron(train_set, train_labels,  max_iter):
     num_labels = len(np.unique(train_labels) ) #len(train_labels) # v
     num_features = train_set.shape[1] # d
     print(num_labels, ", " , num_features)
-    W = np.zeros( (num_labels, num_features)) # row vectors represent weight vectors
-    b = np.zeros(num_labels) # each element represents individual biases
+    W = np.zeros(num_features)  # w vector = w1 - w2
+    b = 0  # each element represents individual biases
     
     features = train_set # contains [ [x1] 
     #                                 [x2]       
     #                                 [x3]
     #                                 [x4]
     #                                   ... ]
-   
+    W += learning_rate * features[0] 
+    b += learning_rate
+
     for iter in range(max_iter):
-        W[0] += learning_rate * features[0] 
-        b[0] += learning_rate * features[0,0]
         for idx, x_vector in enumerate(features):
-            if idx == 0: 
-                continue
-            product_vector = W @ x_vector + b
-            yhat = np.argmax(product_vector)
-            W[yhat] -= learning_rate * x_vector
-            correct_label = int(train_labels[idx])
-            W[  correct_label] += learning_rate * x_vector
-            b[yhat] -= learning_rate
-            b[correct_label] += learning_rate
+            product = np.dot(W, x_vector) + b
 
+            correct_label = int(train_labels[idx]) # y
+            predicted_label = 1 if product > 0 else 0 
 
-
-
-
+            if predicted_label != correct_label:
+                if predicted_label == 1:
+                    W -= learning_rate * x_vector
+                    b -= learning_rate
+                elif predicted_label == 0:
+                    W += learning_rate * x_vector
+                    b += learning_rate
     return W, b
 
 def classifyPerceptron(train_set, train_labels, dev_set, max_iter):
@@ -62,7 +60,7 @@ def classifyPerceptron(train_set, train_labels, dev_set, max_iter):
     
     classified = []
     for vector in dev_set:
-        if np.sum(W @ vector + b) < 0:
+        if np.dot(W ,vector) + b < 0:
             classified.append(0)
         else:
             classified.append(1)
