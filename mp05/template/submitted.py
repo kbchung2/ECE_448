@@ -11,8 +11,11 @@ def create_sequential_layers():
         2. a sigmoid activation layer,
         3. a linear layer with 3 input features and 5 output features.
     """
-    raise NotImplementedError("You need to write this part!")
-
+    linear_layer = nn.Linear(in_features= 2, out_features=3)
+    sigmoid_activation = nn.Sigmoid()
+    last_linear = nn.Linear(in_features=3, out_features=5)
+    network = nn.Sequential(linear_layer,sigmoid_activation, last_linear)
+    return network
 
 def create_loss_function():
     """
@@ -21,7 +24,7 @@ def create_loss_function():
     Requirements: Return a loss function from the nn module that is suitable for
     multi-class classification.
     """
-    raise NotImplementedError("You need to write this part!")
+    return nn.CrossEntropyLoss()
 
 
 class NeuralNet(torch.nn.Module):
@@ -32,7 +35,6 @@ class NeuralNet(torch.nn.Module):
         super().__init__()
         ################# Your Code Starts Here #################
 
-        raise NotImplementedError("You need to write this part!")
         ################## Your Code Ends here ##################
 
     def forward(self, x):
@@ -47,7 +49,6 @@ class NeuralNet(torch.nn.Module):
         """
         ################# Your Code Starts Here #################
 
-        raise NotImplementedError("You need to write this part!")
         return y
         ################## Your Code Ends here ##################
 
@@ -74,7 +75,6 @@ def train(train_dataloader, epochs):
     loss_fn = None
     optimizer = None
 
-    raise NotImplementedError("You need to write this part!")
     ################## Your Code Ends here ##################
 
     return model
