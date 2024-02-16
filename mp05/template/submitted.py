@@ -34,6 +34,11 @@ class NeuralNet(torch.nn.Module):
         """
         super().__init__()
         ################# Your Code Starts Here #################
+        
+        self.hidden = nn.Linear(2883, 240)
+        self.activation = nn.ReLU()
+        self.output = nn.Linear(240, 5)
+
 
         ################## Your Code Ends here ##################
 
@@ -48,7 +53,9 @@ class NeuralNet(torch.nn.Module):
             y:      an (N, output_size) tensor of output from the network
         """
         ################# Your Code Starts Here #################
-
+        middle = self.hidden(x)
+        middle = self.activation(middle)
+        y = self.output(middle)
         return y
         ################## Your Code Ends here ##################
 
@@ -59,7 +66,6 @@ def train(train_dataloader, epochs):
 
     Parameters:
         train_dataloader:   a dataloader for the training set and labels
-        test_dataloader:    a dataloader for the testing set and labels
         epochs:             the number of times to iterate over the training set
 
     Outputs:
@@ -72,9 +78,19 @@ def train(train_dataloader, epochs):
     """
     # Create an instance of NeuralNet, a loss function, and an optimizer
     model = NeuralNet()
-    loss_fn = None
-    optimizer = None
+    loss_fn = create_loss_function
+    optimizer = torch.optim.SGD(params=  model.parameters(),lr = 0.01)
+    print(train_dataloader)
+    model.train()
 
+    for epoch in range(epochs):
+        for sample_batch, test_batch in train_dataloader:
+            predicted = model(sample_batch)
+            loss = loss_fn()(predicted,test_batch)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        
     ################## Your Code Ends here ##################
 
     return model
