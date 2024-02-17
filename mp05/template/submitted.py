@@ -34,10 +34,13 @@ class NeuralNet(torch.nn.Module):
         """
         super().__init__()
         ################# Your Code Starts Here #################
+
+        self.hidden = nn.Linear(2883, 300)
         
-        self.hidden = nn.Linear(2883, 240)
-        self.activation = nn.ReLU()
-        self.output = nn.Linear(240, 5)
+        # self.activation = nn.Conv2d(in_channels=31,out_channels=31, kernel_size= (3,3))
+        # self.activation2 = nn.Conv2d(in_channels=31,out_channels=3,kernel_size=(3,3))
+        self.activation= nn.ReLU()
+        self.output = nn.Linear(300, 5)
 
 
         ################## Your Code Ends here ##################
@@ -53,9 +56,12 @@ class NeuralNet(torch.nn.Module):
             y:      an (N, output_size) tensor of output from the network
         """
         ################# Your Code Starts Here #################
+        
         middle = self.hidden(x)
         middle = self.activation(middle)
         y = self.output(middle)
+        # x_flatten = torch.flatten(middle)
+        # y = self.output(x_flatten)
         return y
         ################## Your Code Ends here ##################
 
@@ -78,7 +84,7 @@ def train(train_dataloader, epochs):
     """
     # Create an instance of NeuralNet, a loss function, and an optimizer
     model = NeuralNet()
-    loss_fn = create_loss_function
+    loss_fn = create_loss_function()
     optimizer = torch.optim.SGD(params=  model.parameters(),lr = 0.01)
     print(train_dataloader)
     model.train()
@@ -86,7 +92,7 @@ def train(train_dataloader, epochs):
     for epoch in range(epochs):
         for sample_batch, test_batch in train_dataloader:
             predicted = model(sample_batch)
-            loss = loss_fn()(predicted,test_batch)
+            loss = loss_fn(predicted,test_batch)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
