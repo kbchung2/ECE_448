@@ -18,6 +18,8 @@ files and classes when code is run, so be careful to not modify anything else.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,astar,astar_multi)
 
+import queue
+
 def bfs(maze):
     """
     Runs BFS for part 1 of the assignment.
@@ -26,7 +28,38 @@ def bfs(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
+    
     #TODO: Implement bfs function
+    queue_ = queue.Queue()
+    set_ = set()
+    start_cell = maze.start
+    queue_.put(start_cell)
+    current_cell = maze.start
+    end = maze.waypoints[0]
+    path = []
+    backtrace = {} # Would this work? 
+    while ( queue_._qsize() != 0 ) : 
+        current_cell = queue_.get()
+        
+        if ( (current_cell[0] == end[0] and current_cell[1] == end[1]) ):
+            # Do the backtracing    
+            while (not (current_cell[0] == start_cell[0] and current_cell[1] == start_cell[1])):
+                path.insert(0,current_cell)
+                current_cell = backtrace[current_cell]
+            path.insert(0,start_cell)
+            return path
+            
+        valid_neighbors = maze.neighbors_all(current_cell[0],current_cell[1])
+        set_.add(current_cell)
+        # print("Current Cell: " ,current_cell, "Current Cell's valid neighbors: ", valid_neighbors, "Set: ", set_)
+        for idx, neighbor in enumerate(valid_neighbors):
+            if neighbor not in set_:    
+                backtrace[neighbor] = current_cell
+                queue_.put(neighbor)
+                set_.add(neighbor)
+            
+    
+    
 
     return []
 
