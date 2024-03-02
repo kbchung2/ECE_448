@@ -19,7 +19,7 @@ files and classes when code is run, so be careful to not modify anything else.
 # searchMethod is the search method specified by --method flag (bfs,dfs,astar,astar_multi)
 
 import queue
-
+import numpy as np
 def bfs(maze):
     """
     Runs BFS for part 1 of the assignment.
@@ -48,7 +48,7 @@ def bfs(maze):
                 current_cell = backtrace[current_cell]
             path.insert(0,start_cell)
             return path
-            
+          
         valid_neighbors = maze.neighbors_all(current_cell[0],current_cell[1])
         set_.add(current_cell)
         # print("Current Cell: " ,current_cell, "Current Cell's valid neighbors: ", valid_neighbors, "Set: ", set_)
@@ -72,7 +72,49 @@ def astar_single(maze):
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
     #TODO: Implement astar_single
+    path = []
+    backtrace = {}
+    
+    start_cell = maze.start
+    end = maze.waypoints[0]
+    start_row = start_cell[0]
+    start_col = start_cell[1]
+    open = queue.PriorityQueue() # Format of this queue is f, row, column
+    closed = set() # Format for closed is row, column
+    open.put( (0.0, start_cell[0],start_cell[1] ) ) # f, row, column
+    
+    fgh_mapping = [  [ [np.inf,np.inf,0] for c in range(maze.size.x) ] for r in range(maze.size.y) ] # fgh_mapping[r,c][i] gives you f, g, h at r,c depending on i
+    fgh_mapping[start_row][start_col][0] = 0
+    fgh_mapping[start_row][start_col][1] = 0
+    fgh_mapping[start_row][start_col][2] = 0
 
+    while open._qsize() > 0:
+        q = open.get()
+        cur_row = q[1]
+        cur_col = q[2]
+        closed.add( (q[1],q[2]))
+        valid_neighbors = maze.neighbors_all(q[1],q[2])
+        for neighbor in valid_neighbors:
+            if neighbor not in closed:
+                if neighbor[0] == end[0] and neighbor[1] == end[1]:
+                    backtrace[neighbor] = (q[1],q[2]) # Now perform backtracing
+                    current_cell = neighbor
+                    while not (current_cell[0] == start_cell[0] and current_cell[1] == start_cell[1]):
+                        path.insert(0, current_cell)
+                        current_cell = backtrace[current_cell]
+                    path.insert(0, (start_cell[0],start_cell[1]))
+                    return path
+                g_hat = fgh_mapping[cur_row][cur_col][1] + 1
+                h_hat = max(abs(end[0] - neighbor[0] ) , abs(end[1] - neighbor[1]) )
+                f_hat = g_hat + h_hat
+                if f_hat < fgh_mapping[neighbor[0]][neighbor[1]][0]:
+                    open.put( (f_hat, neighbor[0], neighbor[1])  )
+                    fgh_mapping[neighbor[0]][neighbor[1]][0] = f_hat
+                    fgh_mapping[neighbor[0]][neighbor[1]][1] = g_hat
+                    fgh_mapping[neighbor[0]][neighbor[1]][2] = h_hat
+                    backtrace[neighbor] = (q[1],q[2])
+        
+    
     return []
 
 # This function is for Extra Credits, please begin this part after finishing previous two functions
