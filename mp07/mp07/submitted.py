@@ -62,25 +62,6 @@ def minimax(board, side, flags, depth):
     
     if depth == 0: # base case
       return ([], {}, value)
-      # optValue = float('inf') if not side else -float('inf') # if side is true, we want to minimize, if side is false, we want to maximize\
-      
-      # moves = [move for move in generateMoves(board,not side,flags)]
-      # optMove = moves[0]
-      # value = optValue
-      # moveList = []
-      # moveTree = {encode(*move): {} for move in moves}
-      # for move in moves:
-      #   copySide,copyBoard, copyFlags = makeMove(not side,board,move[0], move[1], flags, move[2])
-      #   value_ = evaluate(copyBoard)
-      #   if not side:
-      #     optValue = value_ if value_ < optValue else optValue
-      #     optMove = move if value_ < optValue else optMove
-      #   else:
-      #     optValue = value_ if value_ > optValue else optValue
-      #     optMove = move if value_ > optValue else optMove
-      # moveList.append(optMove)
-      # value = optValue
-      # return (moveList, moveTree, value )
     else:       #recursive case
       moves = [move for move in generateMoves(board, side, flags)]
       if side: # minimize
@@ -89,9 +70,8 @@ def minimax(board, side, flags, depth):
         for move in moves:
           newSide, newBoard, newFlags=  makeMove(side, board, move[0], move[1], flags, move[2])
           tempMoveList, tempMoveTree, tempValue = minimax(newBoard,newSide,newFlags, depth - 1)
+          updateMove = [move] + [m for m in tempMoveList] if tempValue < updateValue else updateMove
           updateValue = tempValue if tempValue < updateValue else updateValue 
-          updateMove = [move, (m for m in tempMoveList)] if tempValue < updateValue else [move]
-          print("Update Move is ", updateMove)
           moveTree[encode(*move)]  = tempMoveTree
         value = updateValue
         moveList = updateMove
@@ -101,15 +81,12 @@ def minimax(board, side, flags, depth):
         for move in moves:
           newSide, newBoard, newFlags = makeMove(side,board,move[0], move[1], flags, move[2])
           tempMoveList, tempMoveTree, tempValue = minimax(newBoard,newSide,newFlags, depth - 1)
+          updateMove = [move] + [ m for m in tempMoveList] if tempValue > updateValue else updateMove
           updateValue = tempValue if tempValue > updateValue else updateValue
-          updateMove = [move, (m for m in tempMoveList)] if tempValue > updateValue else updateMove
-          print("Update Move is ", updateMove, "\n")
-          moveTree[encode(*move)]  = tempMoveTree
-      
+          moveTree[encode(*move)]  = tempMoveTree      
         value = updateValue
         moveList = updateMove
       return (moveList, moveTree, value)
-    # raise NotImplementedError("you need to write this!")
 
 def alphabeta(board, side, flags, depth, alpha=-math.inf, beta=math.inf):
     '''
