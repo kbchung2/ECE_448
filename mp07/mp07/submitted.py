@@ -101,7 +101,50 @@ def alphabeta(board, side, flags, depth, alpha=-math.inf, beta=math.inf):
       flags (list of flags): list of flags, used by generateMoves and makeMove
       depth (int >=0): depth of the search (number of moves)
     '''
-    raise NotImplementedError("you need to write this!")
+    moveList = []
+    moveTree = {}
+    value = evaluate(board)
+    
+    if depth == 0: # base case
+      return ([], {}, value)
+    else:       #recursive case
+      moves = [move for move in generateMoves(board, side, flags)]
+      if side: # minimize
+        updateValue = float('inf')
+        updateMove = []
+        for move in moves:
+          newSide, newBoard, newFlags=  makeMove(side, board, move[0], move[1], flags, move[2])
+          tempMoveList, tempMoveTree, tempValue = alphabeta(newBoard,newSide,newFlags, depth - 1,alpha,beta)
+          updateMove = [move] + [m for m in tempMoveList] if tempValue < updateValue else updateMove
+          beta = tempValue if tempValue < beta else beta
+          updateValue = tempValue if tempValue < updateValue else updateValue 
+          moveTree[encode(*move)]  = tempMoveTree          
+          if alpha >= beta: # prune
+            value = updateValue
+            moveList = updateMove
+            break
+        value = updateValue
+        moveList = updateMove
+      else: # maximize
+        updateValue = -float('inf')
+        updateMove = [] 
+        for move in moves:
+          newSide, newBoard, newFlags = makeMove(side,board,move[0], move[1], flags, move[2])
+          tempMoveList, tempMoveTree, tempValue = alphabeta(newBoard,newSide,newFlags, depth - 1,alpha,beta)
+          updateMove = [move] + [ m for m in tempMoveList] if tempValue > updateValue else updateMove
+          alpha = tempValue if tempValue > alpha else alpha
+          updateValue = tempValue if tempValue > updateValue else updateValue
+          moveTree[encode(*move)]  = tempMoveTree
+          if alpha >= beta: # prune
+            value = updateValue
+            moveList = updateMove
+            break    
+        value = updateValue
+        moveList = updateMove
+      return (moveList, moveTree, value)
+    
+    
+    # raise NotImplementedError("you need to write this!")
     
 
 def stochastic(board, side, flags, depth, breadth, chooser):
