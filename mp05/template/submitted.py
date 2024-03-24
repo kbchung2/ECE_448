@@ -34,15 +34,12 @@ class NeuralNet(torch.nn.Module):
         """
         super().__init__()
         ################# Your Code Starts Here #################
-
-        self.hidden = nn.Linear(2883, 300)
+        self.flatten = nn.Flatten()
+        self.activation = nn.Sequential(nn.Conv2d(in_channels=3,out_channels=32, kernel_size= 3), nn.MaxPool2d(32) )
         
-        # self.activation = nn.Conv2d(in_channels=31,out_channels=31, kernel_size= (3,3))
-        # self.activation2 = nn.Conv2d(in_channels=31,out_channels=3,kernel_size=(3,3))
-        self.activation= nn.ReLU()
-        self.output = nn.Linear(300, 5)
-
-
+        self.hidden = nn.Linear(2883,300) # Only define the out_features, it will initialize the input size during the first forward pass.
+        self.activation2 = nn.ReLU()
+        self.output = nn.Linear(in_features=300, out_features=5)    
         ################## Your Code Ends here ##################
 
     def forward(self, x):
@@ -57,14 +54,24 @@ class NeuralNet(torch.nn.Module):
         """
         ################# Your Code Starts Here #################
         
-        middle = self.hidden(x)
-        middle = self.activation(middle)
-        y = self.output(middle)
-        # x_flatten = torch.flatten(middle)
-        # y = self.output(x_flatten)
-        return y
-        ################## Your Code Ends here ##################
+        # Max pooling over a (2, 2) window
+        
+        
+        x  = self.activation(x)
+        print(x.shape)
+        x = self.flatten(x)
+        print(x.shape)
 
+        x  = self.hidden(x)
+        print(x.shape)
+        x = self.activation2(x)
+        print(x.shape)
+        
+        x = self.output(x)
+        
+        
+        ################## Your Code Ends here ##################
+        return x
 
 def train(train_dataloader, epochs):
     """
@@ -85,7 +92,7 @@ def train(train_dataloader, epochs):
     # Create an instance of NeuralNet, a loss function, and an optimizer
     model = NeuralNet()
     loss_fn = create_loss_function()
-    optimizer = torch.optim.SGD(params=  model.parameters(),lr = 0.01)
+    optimizer = torch.optim.Adam(params=  model.parameters())
     print(train_dataloader)
     model.train()
 

@@ -136,6 +136,56 @@ def astar_multiple(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
+    path = []
+    backtrace = {}
+    
+    start_cell = maze.start
+    end = maze.waypoints[0]
+    start_row = start_cell[0]
+    start_col = start_cell[1]
+    open = queue.PriorityQueue() # Format of this queue is f, row, column
+    closed = set() # Format for closed is row, column
+    open.put( (0, start_cell[0],start_cell[1] ) ) # f, row, column
+    # fgh_mapping = {} # (r,c ) -> [f,g,h]
+    
+    
+    
+    fgh_mapping = [  [ [float("inf"),float("inf"),0] for c in range(maze.size.x) ] for r in range(maze.size.y) ] # fgh_mapping[r,c][i] gives you f, g, h at r,c depending on i
+    fgh_mapping[start_row][start_col][0] = 0
+    fgh_mapping[start_row][start_col][1] = 0
+    fgh_mapping[start_row][start_col][2] = 0
+
+    # fgh_mapping[(start_row,start_col)] = [np.inf,np.inf,0]
+    
+    while open._qsize() > 0:
+        q = open.get()
+        cur_row = q[1]
+        cur_col = q[2]
+        closed.add( (q[1],q[2])   )
+        valid_neighbors = maze.neighbors_all(q[1],q[2])
+        for neighbor in valid_neighbors:
+            if neighbor not in closed:
+                if neighbor[0] == end[0] and neighbor[1] == end[1]:
+                    backtrace[neighbor] = (q[1],q[2]) # Now perform backtracing
+                    current_cell = neighbor
+                    while not (current_cell[0] == start_cell[0] and current_cell[1] == start_cell[1]):
+                        path.insert(0, current_cell)
+                        current_cell = backtrace[current_cell]
+                    path.insert(0, (start_cell[0],start_cell[1]))
+                    return path
+                # g_hat = fgh_mapping[(cur_row,cur_col)][1] + 1
+                g_hat = fgh_mapping[cur_row][cur_col][1] + 1
+                h_hat = max(abs(end[0] - neighbor[0] ) , abs(end[1] - neighbor[1]) )
+                f_hat = g_hat + h_hat
+                if f_hat <  fgh_mapping[neighbor[0]][neighbor[1]][0]:
+                    open.put( (f_hat, neighbor[0], neighbor[1])  )
+                    # fgh_mapping[(neighbor[0],neighbor[1])][0] = f_hat
+                    # fgh_mapping[(neighbor[0],neighbor[1])][1] = g_hat
+                    # fgh_mapping[(neighbor[0],neighbor[1])][2] = h_hat
+                    fgh_mapping[neighbor[0]][neighbor[1]][0] = f_hat
+                    fgh_mapping[neighbor[0]][neighbor[1]][1] = g_hat
+                    fgh_mapping[neighbor[0]][neighbor[1]][2] = h_hat
+                    backtrace[neighbor] = (q[1],q[2])
     
     
 

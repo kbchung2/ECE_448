@@ -47,6 +47,7 @@ def Get_DataLoaders(train_set, train_labels, test_set, test_labels, batch_size):
     test_loader = DataLoader(
         dataset=test_dataset, batch_size=batch_size, shuffle=False, num_workers=0
     )
+    # train_loader
     return train_loader, test_loader
 
 

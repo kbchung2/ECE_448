@@ -17,7 +17,7 @@ import numpy as np
 
 # define your epsilon for laplace smoothing here
 
-epsilon = 1e-10 # is this a reasonable value?
+epsilon = 5e-6 # is this a reasonable value?
 
 def baseline(test, train):
     '''
@@ -245,6 +245,8 @@ def viterbi(test, train):
     return output
 
 def viterbi_ec(test, train):
+
+    return viterbi(test,train)
     '''
     Implementation for the improved viterbi tagger.
     input:  test data (list of sentences, no tags on the words). E.g.,  [[word1, word2], [word3, word4]]
