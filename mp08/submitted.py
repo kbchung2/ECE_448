@@ -44,7 +44,10 @@ def utility_partials(R, x):
 
     HINT: You may find the functions sig2 and dsig2 to be useful.
     '''
-    raise RuntimeError("You need to write this!")
+    # raise RuntimeError("You need to write this!")
+    # partial = np.array([1,1])
+
+    partial =  np.array([dsig2(sig2(x[0])) @ R[0] @ sig2(x[1]) , sig2(x[0]) @  R[1] @ dsig2(sig2(x[1])) ])
     return partial
 
 def episodic_game_gradient_ascent(init, rewards, nsteps, learningrate):
@@ -69,7 +72,18 @@ def episodic_game_gradient_ascent(init, rewards, nsteps, learningrate):
     The utility (expected reward) for player i is sig2(logits[t,0])@rewards[i,:,:]@sig2(logits[t,1]),
     and the next logits are logits[t+1,i] = logits[t,i] + learningrate * utility_partials(rewards, logits[t,:]).
     '''
-    raise RuntimeError("You need to write this!")            
+    logits = np.zeros( (nsteps, 2))
+    utilities = np.zeros((nsteps,2))
+    logits[0] = init
+    utilities[0,0] = sig2(init[0]) @ rewards[0] @ sig2(init[1])
+    utilities[0,1] = sig2(init[1]) @ rewards[1] @ sig2(init[1]) # initialize the first step of utilities
+    for iter in range(1, nsteps):
+        logits[iter] = logits[iter - 1] + learningrate * utility_partials(rewards, logits[iter - 1]) # update x and y using the equation on slide 17 in lecture 24
+        utilities[iter, 0] = sig2(logits[iter,0]) @ rewards[0] @ sig2(logits[iter,1])
+        utilities[iter,1] = sig2(logits[iter,0]) @ rewards[1] @ sig2(logits[iter,1]) # update utilities for each player
+    
+    
+    # raise RuntimeError("You need to write this!")            
     return logits, utilities
     
 def utility_hessian(R, x):
