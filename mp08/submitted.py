@@ -101,7 +101,26 @@ def utility_hessian(R, x):
 
     HINT: You may find the functions sig2, dsig2, and Hsig2 to be useful.
     '''
-    raise RuntimeError("You need to write this!")            
+    hessian = np.zeros((2,2))
+    
+    sig0 = sig2(x[0]) # sig( x)
+    sig1 = sig2(x[1]) # sig( y)
+    
+    dsig0 = dsig2(sig0) # respect to x
+    dsig1 = dsig2(sig1)
+    
+    Hsig00 = Hsig2(sig0)
+    Hsig11 = Hsig2(sig1)
+    
+    hessian[0,0] = Hsig00 @ R[0] @ sig1
+    hessian[0,1] =  dsig0 @ R[0] @ dsig1
+    hessian[1,0] = dsig0 @ R[1] @ dsig1
+    hessian[1,1] = Hsig11 @ R[1] @ sig1
+
+    
+    
+    
+    # raise RuntimeError("You need to write this!")            
     return hessian
     
 def episodic_game_corrected_ascent(init, rewards, nsteps, learningrate):
@@ -129,7 +148,21 @@ def episodic_game_corrected_ascent(init, rewards, nsteps, learningrate):
     and if t+1 is less than nsteps, the logits are updated as
     logits[t+1,i] = logits[t,i] + learningrate * (I + symplectic_correction(partials, hessian))@partials
     '''
-    raise RuntimeError("You need to write this!")            
+    # raise RuntimeError("You need to write this!")
+    
+    logits = np.zeros((nsteps,2))
+    utilities = np.zeros((nsteps,2))
+    logits[0] = init
+    utilities[0,0]  = sig2(init[0]) @ rewards[0] @ sig2(init[1])
+    utilities[0,1] = sig2(init[1]) @ rewards[1] @ sig2(init[1])
+    for iter in range(1,nsteps):
+        partials = utility_partials(rewards,logits[iter-1])
+        hessian = utility_hessian(rewards, logits[iter-1])
+        
+        logits[iter] = logits[iter -1 ] + learningrate * (np.eye(2) + symplectic_correction(partials,hessian)) @ partials
+        utilities[iter,0] = sig2(logits[iter,0]) @ rewards[0] @ sig2(logits[iter,1])
+        utilities[iter,1] = sig2(logits[iter,0]) @ rewards[1] @ sig2(logits[iter,1])
+                
     return logits, utilities
 
 
