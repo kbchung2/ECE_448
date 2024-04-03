@@ -181,6 +181,7 @@ Examples:
 * If you want to repeat your last move with probability 0.8, and the other player's last move 
 with probability 0.2, return [[0.0, 0.8],[0.2, 1.0]].
 '''
-sequential_strategy = 0.5*np.ones((2,2)) # Default: always play uniformly at random
+sequential_strategy = np.array([[0.9,0.1],
+                                [0.2,0.8]])
 
 
