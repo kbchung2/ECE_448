@@ -9,6 +9,7 @@ Please do not modify any variable name given to you for code completion, especia
 '''
 
 
+# from click import clear
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -76,11 +77,23 @@ class MultiHeadAttention(nn.Module):
         min_val = torch.finfo(query.dtype).min
         ##### YOUR CODE STARTS HERE #####
         ## Use min_val defined above if you want to fill in certain parts of a tensor with the mininum value of a specific data type; use the torch.Tensor.masked_fill function in PyTorch to fill in a bool type mask; You will likely need to use torch.softmax, torch.matmul, torch.Tensor.transpose in your implementation as well, so make sure you look up the definitions in the PyTorch documentation (via a Google Search); also, note that broadcasting in PyTorch works similarly to the behavior in numpy
-
-
-
-
-
+        B, num_heads,T_q,d_k = query.shape
+        _,_,T_k,_ = key.shape
+        _,_,T_v ,_ = value.shape 
+        mat = torch.matmul(query, key.transpose(2,3) / math.sqrt(d_k))
+        # if attention_mask != None:
+            
+        if attention_mask != None:
+            attention_mask = attention_mask.unsqueeze(1).eq(1)
+            mat = mat.masked_fill(attention_mask, min_val)
+        if key_padding_mask != None:
+            key_padding_mask = key_padding_mask.unsqueeze(1).unsqueeze(2).eq(1)
+            mat = mat.masked_fill(key_padding_mask, min_val)
+        softmax_layer = torch.nn.Softmax()
+        softmaxed= torch.softmax(mat ,-1)
+        # print("B = ", B, "num_heads = ", self.num_heads, "T_q = ", T_q, "T_k = ", T_k, "T_v = ", T_v, "d_k = ", self.d_k)
+        x = torch.matmul(softmaxed, value).transpose(2,1)
+        # print(x.shape)
         ##### YOUR CODE ENDS HERE #####
 
         x = x.contiguous().view(B, -1, self.num_heads * self.d_k) # (B, T_q, d_model)
@@ -104,13 +117,35 @@ class MultiHeadAttention(nn.Module):
 
         """
         ##### YOUR CODE STARTS HERE #####
-
-
-
+        B, T_q,d_model = Q.shape
+        _,T_k, _ = K.shape
+        _, T_v, _ = V.shape
+        # Qlist = []
+        # Klist = []
+        # Vlist = []
+        # Qhead  = Q
+        # Khead = K
+        # Vhead = V
+        # for head in range(self.num_heads):
+            # self.W_q(Q)
+            # self.W_q(Q).contiguous().view(d_model,self.num_heads,self.d_k)
+            # self.W_q(Q).contiguous().view(d_model,self.num_heads,self.d_k).transpose()
+        Qhead = self.W_q(Q).contiguous().view(B, T_q ,self.num_heads, self.d_k).transpose(1,2)
+        Khead = self.W_k(K).contiguous().view(B,T_k,self.num_heads,self.d_k).transpose(1,2)
+        Vhead = self.W_v(V).contiguous().view(B, T_v,self.num_heads,self.d_k).transpose(1,2)
+        #     Qlist.append(Qhead)
+        #     Klist.append(Khead)
+        #     Vlist.append(Vhead)
+        # q = torch.concatenate(Qlist)
+        # k = torch.concatenate(Klist)
+        # v=  torch.concatenate(Vlist)
+       
+        # print("B = ", B, "num_heads = ", self.num_heads, "T_q = ", T_q, "T_k = ", T_k, "T_v = ", T_v, "d_k = ", self.d_k)
+        # print(Qhead.shape, " ", Khead.shape, " ", Vhead.shape)
 
         ##### YOUR CODE ENDS HERE #####
-
-        return q, k, v
+        return Qhead, Khead, Vhead
+        # return q, k, v
     
     ## The below function is given; you DO NOT need to modify it
     def forward(self, query, key, value, key_padding_mask = None, attention_mask = None):
