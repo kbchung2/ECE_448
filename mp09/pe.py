@@ -33,7 +33,8 @@ class PositionalEncoding(nn.Module):
         ## note that for better numerical accuracy, (1/10000) ^ (2i / d_model) = exp(2i * (-log(10000) /d_model))
 
         ##### YOUR CODE STARTS HERE #####
-
+        for pos in range(max_seq_length):
+            pe[pos] = torch.Tensor([math.sin(pos * math.exp( i * -math.log(10000) / d_model)) if i % 2 ==0  else math.cos(pos * math.exp( (i-1) * -math.log(10000) / d_model)) for i in range(d_model)])
 
 
 
@@ -54,4 +55,12 @@ class PositionalEncoding(nn.Module):
         """
         ##### YOUR CODE STARTS HERE #####
 
+        B, T, d_model = x.shape
+        print("X shape = ", x.shape)
+        print("Pe shape = " , self.pe.shape)
+    
+        # x_copy = x.clone()
+        # for b in range(B):
+        #     x_copy[b, :, :] += self.pe[:T,:]
+        return x + self.pe[0,:T,:]
         ##### YOUR CODE ENDS HERE #####
