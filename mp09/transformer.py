@@ -188,11 +188,12 @@ class Transformer(nn.Module):
         ##### YOUR CODE STARTS HERE #####
 
         ## Use the given mask creator functions to create decoder padding mask, and decoder auto-regressive attention mask
-
+        decoder_padding_mask = length_to_padding_mask(tgt_lengths)
+        decoder_attention_mask = subsequent_mask(max(tgt_lengths)).unsqueeze(0) # Is this right?
 
 
         ## Pass the decoder input and the encoder output into the decoder, with the correct mask(s) 
-
+        dec_output = self.decoder(tgt_embedded, decoder_padding_mask = decoder_padding_mask,decoder_attention_mask = decoder_attention_mask, encoder_out = enc_output, encoder_padding_mask = src_padding_mask)
 
 
 
