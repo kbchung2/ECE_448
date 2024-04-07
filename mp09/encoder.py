@@ -89,7 +89,8 @@ class TransformerEncoderLayer(nn.Module):
 
         ### Implement encoder self-attention, dropout, and then the Add & Norm opertion
         ##### YOUR CODE STARTS HERE #####
-
+        # xs = self.self_attn(residual, residual, residual, key_padding_mask = self_attn_padding_mask)
+        xs = self.self_attn_layer_norm(residual + self.dropout(self.self_attn(residual,residual, residual,key_padding_mask= self_attn_padding_mask)))
 
 
 
@@ -98,14 +99,14 @@ class TransformerEncoderLayer(nn.Module):
 
         ## Implement encoder position-wise feedforward, dropout, and then the Add & Norm opertion
         #### YOUR CODE STARTS HERE #####
-
+        xd = self.final_layer_norm(xs + self.dropout(self.fc2( self.activation_fn(self.fc1(xs)))  ))
 
 
 
 
         ##### YOUR CODE ENDS HERE #####
 
-        return x
+        return xd
     
 ## The TransformerEncoder class has been implemented for you. Do NOT modify ANY of the code in this class!
 class TransformerEncoder(nn.Module):
