@@ -215,4 +215,18 @@ def policy_evaluation(model):
     Output:
     U - The converged utility function, which is an M x N array
     '''
-    raise RuntimeError("You need to write this part!")
+    M = model.M
+    N = model.N
+    
+    U = np.zeros((M,N))
+    trans = model.FP
+    for iter in range(200):
+        U_next = np.zeros((M,N))
+        for r in range(M):
+            for c in range(N):
+                transMultUtil = np.sum(trans[r,c] * U)
+                U_next[r,c] = model.R[r,c] + model.gamma * transMultUtil
+        U = U_next
+    
+    return U
+    # raise RuntimeError("You need to write this part!")
