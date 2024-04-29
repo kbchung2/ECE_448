@@ -23,7 +23,20 @@ def get_returns(rollout_buffer: utils.RolloutBuffer, discount_factor=0.95):
                 Returns for the entire set of rollouts
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    num_timesteps = len(rollout_buffer.actions)
+    returns = torch.zeros(num_timesteps)
+    terminated_checkpoint = num_timesteps
+    for t in reversed(range(num_timesteps) ) :
+        if rollout_buffer.terminateds[t]:
+            returns[t] = rollout_buffer.rewards[t]
+            terminated_checkpoint = t + 1
+        else:
+            for i in range(t,terminated_checkpoint):
+                returns[t] += rollout_buffer.rewards[i ] * (discount_factor ** ( i - t ) )    
+    
+    return torch.Tensor(returns ).unsqueeze(1)
+    
+    # raise NotImplementedError()
 
 def get_advantages(value_net: nn.Module,
                    observations: torch.Tensor,
@@ -45,6 +58,7 @@ def get_advantages(value_net: nn.Module,
     # You should calculate the advantage, then standardize it (subtract out mean, then divide by standard deviation
     # plus epsilon.) Use 1e-10 for epsilon (defined as EPSILON at top of file). Epsilon is solely there to prevent
     # divide-by-zero errors.
+    
     raise NotImplementedError()
 
 def get_value_net_loss(value_net: nn.Module,
@@ -86,7 +100,17 @@ def get_vanilla_policy_gradient_loss(policy: nn.Module,
                 Vanilla policy gradient loss for the given return or advantage
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    loss_tensor = torch.tensor(0.0)
+    
+    
+    log_probabilities = policy(observation)
+    for batch, act in enumerate(action):
+        action_option = log_probabilities[batch,act[0]]
+        loss_tensor += (action_option * return_or_advantage[batch,0])
+    loss_tensor /= -len(action)
+    
+    return loss_tensor
+    # raise NotImplementedError()
 
 def collect_rollouts(env: utils.EnvInterface,
                      policy: nn.Module,
@@ -115,7 +139,13 @@ def collect_rollouts(env: utils.EnvInterface,
             # 5) Think about what the observation should be for the next step.
             # Note: final_reward_mean is not required for grading, but not having breaks the notebook. Variable reward
             # should be the last reward of the rollout for it to work.
-            raise NotImplementedError()
+            with torch.no_grad():
+                logits = policy(obs)
+            action = utils.distribution_sample(logits, seed =seed)
+            new_obs, terminated, reward = env.step(action)
+            rollout_buffer.add(action,logits,obs, terminated, reward)
+            obs = new_obs
+            # raise NotImplementedError()
             # END YOUR CODE
         final_reward_mean.append(reward)
     policy.train() # Put the policy back in train mode
@@ -203,16 +233,16 @@ def train_policy_gradient(env: utils.EnvInterface,
                 # Everything should be a torch tensor, as specified by the inputs to get_PPO_policy_gradient_loss and
                 # get_vanilla_policy_gradient_loss
 
-                raise NotImplementedError()
+                # raise NotImplementedError()
                 policy_gradient_kwargs = dict(
-                    policy=                 None, # Fill in 
-                    value_net=              None, # Fill in
+                    policy=                 policy, # Fill in 
+                    value_net=              value_net, # Fill in
                     critic=                 None, # Fill in
-                    observation=            None, # Fill in
-                    old_logits=             None, # Fill in
-                    action=                 None, # Fill in
-                    return_or_advantage=    None, # Fill in
-                    returns=                None, # Fill in 
+                    observation=            rollout_buffer.observations[idxr_base[batch_start: batch_stop]] , # Fill in
+                    old_logits=             rollout_buffer.old_logits[idxr_base[batch_start: batch_stop]], # Fill in
+                    action=                 rollout_buffer.actions[idxr_base[batch_start:batch_stop]], # Fill in
+                    return_or_advantage=    advantages if get_advantages != None else returns, # Fill in
+                    returns=                returns[idxr_base[batch_start: batch_stop]], # Fill in 
                     ppo_clip=               ppo_clip
                 )
 
