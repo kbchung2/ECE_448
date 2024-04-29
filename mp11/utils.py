@@ -107,7 +107,7 @@ class SimpleReLuNetwork(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-class RolloutBuffer:
+class  RolloutBuffer:
     def __init__(self):
         self.actions = []
         self.observations = []

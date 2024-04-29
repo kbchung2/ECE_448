@@ -59,7 +59,11 @@ def get_advantages(value_net: nn.Module,
     # plus epsilon.) Use 1e-10 for epsilon (defined as EPSILON at top of file). Epsilon is solely there to prevent
     # divide-by-zero errors.
     
-    raise NotImplementedError()
+    with torch.no_grad():
+        advantage = returns - value_net(observations)
+    standardized = ( advantage - torch.mean(advantage)) / (torch.std(advantage) + EPSILON) 
+    return standardized
+    # raise NotImplementedError()
 
 def get_value_net_loss(value_net: nn.Module,
                        observation: Tensor,
@@ -78,7 +82,16 @@ def get_value_net_loss(value_net: nn.Module,
                 Value network loss for the given returns
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    
+    
+    training_loss = value_net(observation)
+    loss = torch.nn.functional.mse_loss(training_loss, returns) 
+    return loss
+    
+    
+    
+    
+    # raise NotImplementedError()
 
 def get_vanilla_policy_gradient_loss(policy: nn.Module,
                                 observation: Tensor,
@@ -241,7 +254,7 @@ def train_policy_gradient(env: utils.EnvInterface,
                     observation=            rollout_buffer.observations[idxr_base[batch_start: batch_stop]] , # Fill in
                     old_logits=             rollout_buffer.old_logits[idxr_base[batch_start: batch_stop]], # Fill in
                     action=                 rollout_buffer.actions[idxr_base[batch_start:batch_stop]], # Fill in
-                    return_or_advantage=    advantages if get_advantages != None else returns, # Fill in
+                    return_or_advantage=    advantages[idxr_base[batch_start:batch_stop]] if get_advantages != None else returns[idxr_base[batch_start:batch_stop]], # Fill in Do we slice here? I think I need to slice here
                     returns=                returns[idxr_base[batch_start: batch_stop]], # Fill in 
                     ppo_clip=               ppo_clip
                 )
